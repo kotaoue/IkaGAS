@@ -1,2 +1,2 @@
 # IkaGAS
-The GAS of  Splatoon
+The GAS of Splatoon
