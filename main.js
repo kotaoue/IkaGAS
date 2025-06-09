@@ -1,3 +1,10 @@
+function onEdit(e) {
+  const sheetName = e.range.getSheet().getName();
+  if (sheetName !== "results") return; 
+
+  addRowMetaData();
+}
+
 function addRowMetaData() {
   const sheet = SpreadsheetApp.getActive().getSheetByName("results");
   const lastRowNo = sheet.getLastRow();
