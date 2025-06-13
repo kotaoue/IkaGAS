@@ -1,20 +1,24 @@
 function onEdit(e) {
-  const sheetName = e.range.getSheet().getName();
-  if (sheetName !== "results") return; 
+  const sheet = e.range.getSheet();
+  if (sheet.getName() !== "results") return;
 
-  addRowMetaData();
+  const editedColumn = e.range.getColumn();
+  const editedRow = e.range.getRow();
+
+  if (editedColumn !== 3) return;
+
+  addRowMetaData(sheet.getName(), editedRow);
 }
 
-function addRowMetaData() {
-  const sheet = SpreadsheetApp.getActive().getSheetByName("results");
-  const lastRowNo = sheet.getLastRow();
-  const lastRow = sheet.getRange(lastRowNo, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-  if (isNotFormattedRow(lastRow)) {
-    sheet.getRange(lastRowNo, 1).setValue(maxID(sheet) + 1);
-    sheet.getRange(lastRowNo, 2).setValue(currrentTime());
-    // 上手く入力規則がコピーできないのでコメントアウト
-    // copyDataValidation(sheet);
+function addRowMetaData(sheetName, rowNumber) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(sheetName);
+  const rowValues = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  if (isNotFormattedRow(rowValues)) {
+    sheet.getRange(rowNumber, 1).setValue(incrementID(sheet, rowNumber));
+    sheet.getRange(rowNumber, 2).setValue(currrentTime());
+    // copyDataValidation(sheet, rowNumber); 
   }
 }
 
@@ -23,8 +27,9 @@ function isNotFormattedRow(row) {
   return row[0] == "";
 }
 
-function maxID(sheet) {
-  return sheet.getRange(sheet.getLastRow() - 1, 1).getValue();
+function incrementID(sheet, rowNumber) {
+  const prevID = sheet.getRange(rowNumber - 1, 1).getValue(); // 指定行の1つ上のA列 = ID
+  return (prevID || 0) + 1;
 }
 
 function currrentTime() {
@@ -32,9 +37,13 @@ function currrentTime() {
   return Utilities.formatDate(date, 'JST', 'yyyy/MM/dd HH:mm:ss');
 }
 
-function copyDataValidation(sheet) {
-  // 以下のコードでやると入力規則だけがコピーされて。項目ごとのカラーなどがコピーされない
-  // https://developers.google.com/apps-script/reference/spreadsheet/data-validation?hl=ja
-  const rule = sheet.getRange(2, 3, 1, 4).getDataValidations();
-  sheet.getRange(3, 3, 1, 4).setDataValidations(rule);
+function copyDataValidationAndFormat(sheet, fromRow, toRow) {
+  const fromRange = sheet.getRange(fromRow, 3, 1, 4); // C〜F列
+  const toRange = sheet.getRange(toRow, 3, 1, 4);
+
+  // 入力規則をコピー
+  toRange.setDataValidations(fromRange.getDataValidations());
+
+  // 書式（フォント・背景色など）をコピー
+  fromRange.copyFormatToRange(sheet, 3, 6, toRow, toRow);
 }
