@@ -1,24 +1,27 @@
 function onEdit(e) {
   const sheet = e.range.getSheet();
-  if (sheet.getName() !== "results") return;
+  const sheetName = sheet.getName();
+  if (sheetName !== "results") return;
 
   const editedColumn = e.range.getColumn();
   const editedRow = e.range.getRow();
 
   if (editedColumn !== 3) return;
 
-  addRowMetaData(sheet.getName(), editedRow);
+  addRowMetaData(sheetName, editedRow);
 }
 
 
 function addRowMetaData(sheetName, rowNumber) {
+  console.log(`[addRowMetaData] sheetName: ${sheetName}, row: ${rowNumber}`);
+
   const sheet = SpreadsheetApp.getActive().getSheetByName(sheetName);
   const rowValues = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
 
   if (isNotFormattedRow(rowValues)) {
     sheet.getRange(rowNumber, 1).setValue(incrementID(sheet, rowNumber));
     sheet.getRange(rowNumber, 2).setValue(currrentTime());
-    // copyDataValidation(sheet, rowNumber); 
+    // copyDataValidation(sheet, rowNumber);
   }
 }
 
